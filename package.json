@@ -1,0 +1,138 @@
+{
+  "name": "ps-command-dashboard",
+  "displayName": "PowerShell Command Dashboard",
+  "description": "Run curated PowerShell command batches with transparency and least-privilege elevation",
+  "version": "0.1.0",
+  "publisher": "luc-systems",
+  "author": "Luc",
+  "license": "MIT",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Other"],
+  "main": "./out/extension-dynamic.js",
+  "extensionKind": ["ui", "workspace"],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "psDashboard.open",
+        "title": "Open PowerShell Command Dashboard",
+        "category": "PowerShell Dashboard"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        { "command": "psDashboard.open", "when": "true" }
+      ]
+    },
+    "configuration": {
+      "title": "PowerShell Command Dashboard",
+      "properties": {
+        "psDashboard.shell.preferred": {
+          "type": "string",
+          "enum": ["auto", "pwsh", "powershell"],
+          "default": "auto",
+          "description": "Preferred PowerShell shell (auto = auto-detect, pwsh = PowerShell 7+, powershell = Windows PowerShell 5.1)"
+        },
+        "psDashboard.execution.mode": {
+          "type": "string",
+          "enum": ["headless", "terminal"],
+          "default": "headless",
+          "description": "Execution mode: headless (background with JSONL streaming) or terminal (VS Code integrated terminal)"
+        },
+        "psDashboard.artifacts.retentionDays": {
+          "type": "number",
+          "default": 14,
+          "minimum": 1,
+          "maximum": 90,
+          "description": "Number of days to retain run artifacts before auto-deletion"
+        },
+        "psDashboard.packs.customPaths": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Array of file paths to custom command pack JSON files (extends built-in packs)"
+        },
+        "psDashboard.ui.search.debounceMs": {
+          "type": "number",
+          "default": 50,
+          "minimum": 0,
+          "maximum": 1000,
+          "description": "Debounce delay in milliseconds for search input"
+        },
+        "psDashboard.security.redaction.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable sensitive data redaction in UI display (does not affect artifacts)"
+        },
+        "psDashboard.elevation.waitTimeoutMs": {
+          "type": "number",
+          "default": 60000,
+          "minimum": 10000,
+          "maximum": 300000,
+          "description": "Timeout in milliseconds for UAC elevation prompts"
+        },
+        "psDashboard.history.maxEntries": {
+          "type": "number",
+          "default": 100,
+          "minimum": 10,
+          "maximum": 1000,
+          "description": "Maximum number of history entries to keep"
+        },
+        "psDashboard.runner.killOnCancel": {
+          "type": "boolean",
+          "default": true,
+          "description": "Terminate running processes when canceling execution"
+        },
+        "psDashboard.telemetry.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable anonymous telemetry (no-op, never sends data)"
+        }
+      }
+    }
+  },
+
+  "scripts": {
+    "vscode:prepublish": "npm run pre-publish",
+    "build": "pnpm run build:extension && pnpm run build:webview && node scripts/copy-packs.mjs",
+    "build:extension": "tsc -p ./tsconfig.json",
+    "build:webview": "vite build --config webview/vite.config.ts",
+    "watch": "concurrently \"tsc -watch -p ./tsconfig.json\" \"vite\"",
+    "lint": "eslint src webview --ext ts,tsx",
+    "format": "prettier --write \"src/**/*.ts\" \"webview/**/*.{ts,tsx}\" \"powershell/**/*.ps1\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:pester": "pwsh -NoProfile -ExecutionPolicy Bypass -File ./tests/powershell/run-pester.ps1",
+    "test:integration": "node ./out/tests/integration/runTests.js",
+    "validate-packs": "node scripts/check-epic1.mjs",
+    "package": "vsce package --no-dependencies",
+    "pre-publish": "pnpm run build && pnpm run validate-packs && pnpm test"
+  },
+
+  "devDependencies": {
+    "@types/node": "^18.19.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "@vscode/test-electron": "^2.3.8",
+    "@vscode/vsce": "^2.22.0",
+    "concurrently": "^8.2.2",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.1.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.10",
+    "vitest": "^1.1.0"
+  },
+
+  "dependencies": {
+    "@vscode/webview-ui-toolkit": "^1.4.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "zod": "^3.22.4",
+    "zustand": "^4.4.7"
+  }
+}

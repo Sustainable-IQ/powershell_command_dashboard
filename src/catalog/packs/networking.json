@@ -1,0 +1,155 @@
+{
+  "id": "networking",
+  "name": "Networking Diagnostics",
+  "description": "Network configuration, connectivity tests, and troubleshooting commands",
+  "version": "1.0.0",
+  "author": "Luc",
+  "commands": [
+    {
+      "id": "get-ip-config",
+      "label": "IP Configuration",
+      "category": "Networking",
+      "description": "Displays IP configuration for all network adapters",
+      "commandText": "Get-NetIPConfiguration | Select-Object InterfaceAlias, InterfaceDescription, IPv4Address, IPv6Address, DNSServer | ConvertTo-Json -Depth 3",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["ip", "network", "diagnostics", "read-only"]
+    },
+    {
+      "id": "get-tcp-connections",
+      "label": "TCP Connections",
+      "category": "Networking",
+      "description": "Lists all active TCP connections with local/remote addresses and owning process",
+      "commandText": "Get-NetTCPConnection | Select-Object LocalAddress, LocalPort, RemoteAddress, RemotePort, State, OwningProcess | ConvertTo-Json -Depth 2",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["tcp", "network", "connections", "read-only"]
+    },
+    {
+      "id": "get-network-adapters",
+      "label": "Network Adapters",
+      "category": "Networking",
+      "description": "Lists all network adapters with status, link speed, and MAC address",
+      "commandText": "Get-NetAdapter | Select-Object Name, InterfaceDescription, Status, LinkSpeed, MacAddress | ConvertTo-Json -Depth 2",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["adapter", "network", "hardware", "read-only"]
+    },
+    {
+      "id": "get-routing-table",
+      "label": "Routing Table",
+      "category": "Networking",
+      "description": "Displays the IP routing table",
+      "commandText": "Get-NetRoute | Select-Object DestinationPrefix, NextHop, InterfaceAlias, RouteMetric | ConvertTo-Json -Depth 2",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["route", "network", "diagnostics", "read-only"]
+    },
+    {
+      "id": "get-arp-cache",
+      "label": "ARP Cache (Neighbors)",
+      "category": "Networking",
+      "description": "Lists ARP cache entries (neighbor discovery)",
+      "commandText": "Get-NetNeighbor | Select-Object IPAddress, LinkLayerAddress, State, InterfaceAlias | ConvertTo-Json -Depth 2",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["arp", "network", "cache", "read-only"]
+    },
+    {
+      "id": "get-dns-cache",
+      "label": "DNS Client Cache",
+      "category": "Networking",
+      "description": "Displays DNS resolver cache",
+      "commandText": "Get-DnsClientCache | Select-Object Entry, Data, Type, TimeToLive | ConvertTo-Json -Depth 2",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["dns", "cache", "read-only"]
+    },
+    {
+      "id": "clear-dns-cache",
+      "label": "Clear DNS Cache",
+      "category": "Networking",
+      "description": "Clears the DNS resolver cache",
+      "commandText": "Clear-DnsClientCache; Write-Output 'DNS cache cleared'",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["dns", "cache", "write"],
+      "verifyAfterRun": {
+        "description": "Verify DNS cache is empty or near-empty",
+        "checkCommand": "(Get-DnsClientCache | Measure-Object).Count",
+        "expectedResult": "< 10",
+        "failureHint": "DNS cache may still contain entries; check if resolver service is running"
+      }
+    },
+    {
+      "id": "test-network-connectivity",
+      "label": "Test Network Connectivity",
+      "category": "Networking",
+      "description": "Tests network connectivity to a specified host",
+      "commandText": "Test-NetConnection -ComputerName '{{host}}' -Port {{port}} | Select-Object ComputerName, RemoteAddress, TcpTestSucceeded, PingSucceeded | ConvertTo-Json -Depth 2",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "params": [
+        {
+          "name": "host",
+          "type": "string",
+          "optional": false,
+          "default": "8.8.8.8",
+          "description": "Host to test (IP or FQDN)"
+        },
+        {
+          "name": "port",
+          "type": "number",
+          "optional": false,
+          "default": 443,
+          "description": "TCP port to test",
+          "validation": {
+            "min": 1,
+            "max": 65535
+          }
+        }
+      ],
+      "tags": ["connectivity", "test", "diagnostics"]
+    },
+    {
+      "id": "get-firewall-profile",
+      "label": "Firewall Profile Status",
+      "category": "Networking",
+      "description": "Shows Windows Firewall profile status (Domain, Private, Public)",
+      "commandText": "Get-NetFirewallProfile | Select-Object Name, Enabled, DefaultInboundAction, DefaultOutboundAction | ConvertTo-Json -Depth 2",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["firewall", "security", "read-only"]
+    },
+    {
+      "id": "get-listening-ports",
+      "label": "Listening Ports",
+      "category": "Networking",
+      "description": "Lists all listening TCP/UDP ports with owning process",
+      "commandText": "$tcp = Get-NetTCPConnection -State Listen | Select-Object LocalAddress, LocalPort, OwningProcess; $udp = Get-NetUDPEndpoint | Select-Object LocalAddress, LocalPort, OwningProcess; @{TCP=$tcp; UDP=$udp} | ConvertTo-Json -Depth 3",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["ports", "listening", "security", "read-only"]
+    }
+  ]
+}

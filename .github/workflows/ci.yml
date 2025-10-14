@@ -1,0 +1,181 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build extension and webview
+        run: pnpm run build
+
+      - name: Validate command packs
+        run: pnpm run validate-packs
+
+      - name: Run Vitest tests
+        run: pnpm test
+
+      - name: Run Pester tests (skip manual)
+        shell: pwsh
+        run: |
+          $testPath = "./tests/powershell"
+          if (Test-Path $testPath) {
+            Write-Host "Running Pester tests..."
+            pwsh -NoProfile -ExecutionPolicy Bypass -File ./tests/powershell/run-pester.ps1 -SkipManual
+          } else {
+            Write-Host "No Pester tests found, skipping..."
+          }
+
+      - name: Performance checks
+        id: perf
+        shell: pwsh
+        run: |
+          Write-Host "Running performance measurements..."
+
+          # Measure PowerShell spawn latency
+          $spawnStart = Get-Date
+          $proc = Start-Process pwsh -ArgumentList "-NoProfile", "-Command", "exit" -PassThru -WindowStyle Hidden
+          $proc.WaitForExit()
+          $spawnTime = ((Get-Date) - $spawnStart).TotalMilliseconds
+          Write-Host "PowerShell spawn time: ${spawnTime}ms"
+
+          # Check thresholds
+          $failed = $false
+          if ($spawnTime -gt 1000) {
+            Write-Host "::error::PowerShell spawn time exceeds threshold (1000ms): ${spawnTime}ms"
+            $failed = $true
+          }
+
+          # Measure build time (already captured)
+          if (Test-Path "./build-metrics.json") {
+            $metrics = Get-Content "./build-metrics.json" | ConvertFrom-Json
+            Write-Host "Build time: $($metrics.buildTime)ms"
+            Write-Host "Bundle size: $($metrics.bundleSize) bytes"
+
+            if ($metrics.buildTime -gt 30000) {
+              Write-Host "::error::Build time exceeds threshold (30s): $($metrics.buildTime)ms"
+              $failed = $true
+            }
+          }
+
+          if ($failed) { exit 1 }
+
+      - name: Package extension
+        run: pnpm run package
+
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: vsix-package
+          path: '*.vsix'
+          retention-days: 7
+
+  smoke-test:
+    runs-on: windows-latest
+    needs: build
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download VSIX
+        uses: actions/download-artifact@v3
+        with:
+          name: vsix-package
+
+      - name: Run E2E smoke test
+        shell: pwsh
+        run: |
+          Write-Host "Running E2E smoke test..."
+          if (Test-Path "./scripts/smoke-test.ps1") {
+            pwsh -NoProfile -ExecutionPolicy Bypass -File ./scripts/smoke-test.ps1
+          } else {
+            Write-Host "Smoke test script not found, creating minimal validation..."
+            # Validate VSIX exists
+            $vsix = Get-ChildItem -Filter "*.vsix" | Select-Object -First 1
+            if (-not $vsix) {
+              Write-Host "::error::No VSIX package found"
+              exit 1
+            }
+            Write-Host "VSIX package validated: $($vsix.Name)"
+          }
+
+  pre-publish-gate:
+    runs-on: windows-latest
+    needs: [build, smoke-test]
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate release readiness
+        shell: pwsh
+        run: |
+          Write-Host "Validating release readiness..."
+
+          $errors = @()
+
+          # Check required files
+          @("README.md", "CHANGELOG.md", "LICENSE", "SECURITY.md", "CONTRIBUTING.md") | ForEach-Object {
+            if (-not (Test-Path $_)) {
+              $errors += "Missing required file: $_"
+            }
+          }
+
+          # Check media assets
+          if (-not (Test-Path "media/icon.png")) {
+            $errors += "Missing extension icon"
+          }
+
+          # Check version consistency
+          $packageJson = Get-Content package.json | ConvertFrom-Json
+          $tagVersion = $env:GITHUB_REF_NAME -replace '^v', ''
+          if ($packageJson.version -ne $tagVersion) {
+            $errors += "Version mismatch: package.json ($($packageJson.version)) vs tag ($tagVersion)"
+          }
+
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Host "::error::$_" }
+            exit 1
+          }
+
+          Write-Host "✅ Release validation passed!"

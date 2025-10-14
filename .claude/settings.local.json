@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(test:*)",
+      "Bash(npm test)",
+      "Bash(export:*)",
+      "Bash(npm run validate-packs:*)",
+      "Bash(node:*)",
+      "Bash(npm run build)",
+      "Bash(npm run build:extension:*)",
+      "Bash(npm run build:webview:*)",
+      "Read(//c/Projects/MyPythonProjects/MyScripts/dist/**)",
+      "Bash(npm run test:*)",
+      "Bash(where node)",
+      "Bash(npx tsc:*)",
+      "Bash(powershell:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

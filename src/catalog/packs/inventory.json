@@ -1,0 +1,129 @@
+{
+  "id": "inventory",
+  "name": "System Inventory",
+  "description": "Commands for gathering system information, processes, services, and installed updates",
+  "version": "1.0.0",
+  "author": "Luc",
+  "commands": [
+    {
+      "id": "get-process-summary",
+      "label": "List Processes (summary)",
+      "category": "Inventory",
+      "description": "Lists all running processes with PID, name, company, and start time",
+      "commandText": "Get-Process | Select-Object Id, ProcessName, Company, StartTime | ConvertTo-Json -Depth 2",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["process", "diagnostics", "read-only"]
+    },
+    {
+      "id": "get-services-status",
+      "label": "List Services",
+      "category": "Inventory",
+      "description": "Lists all Windows services with name, status, and start type",
+      "commandText": "Get-Service | Select-Object Name, Status, StartType | ConvertTo-Json -Depth 2",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["service", "diagnostics", "read-only"]
+    },
+    {
+      "id": "get-drivers-summary",
+      "label": "Drivers Summary",
+      "category": "Inventory",
+      "description": "Lists system drivers with name, state, and start mode",
+      "commandText": "Get-CimInstance Win32_SystemDriver | Select-Object Name, State, StartMode | ConvertTo-Json -Depth 2",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["driver", "diagnostics", "read-only"]
+    },
+    {
+      "id": "get-installed-updates",
+      "label": "Installed Updates",
+      "category": "Inventory",
+      "description": "Lists installed Windows updates with HotFix ID, installed date, and description",
+      "commandText": "Get-HotFix | Select-Object HotFixID, InstalledOn, Description | ConvertTo-Json -Depth 2",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["update", "diagnostics", "read-only"]
+    },
+    {
+      "id": "get-system-logs-recent",
+      "label": "System Logs (recent 200)",
+      "category": "Inventory",
+      "description": "Retrieves the most recent 200 System event log entries",
+      "commandText": "Get-WinEvent -LogName System -MaxEvents 200 | Select-Object TimeCreated, Id, LevelDisplayName, Message | ConvertTo-Json -Depth 2",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["logs", "diagnostics", "read-only"]
+    },
+    {
+      "id": "get-disk-usage",
+      "label": "Disk Usage Summary",
+      "category": "Inventory",
+      "description": "Shows disk volumes with size, free space, and usage percentage",
+      "commandText": "Get-Volume | Where-Object {$_.DriveLetter} | Select-Object DriveLetter, FileSystemLabel, Size, SizeRemaining, @{Name='UsedGB';Expression={[math]::Round(($_.Size - $_.SizeRemaining) / 1GB, 2)}}, @{Name='UsedPercent';Expression={[math]::Round((($_.Size - $_.SizeRemaining) / $_.Size) * 100, 1)}} | ConvertTo-Json -Depth 2",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["disk", "storage", "read-only"]
+    },
+    {
+      "id": "get-computer-info",
+      "label": "Computer System Info",
+      "category": "Inventory",
+      "description": "Retrieves detailed computer system information (OS, BIOS, hardware)",
+      "commandText": "Get-ComputerInfo | Select-Object CsName, WindowsVersion, OsArchitecture, CsTotalPhysicalMemory, BiosManufacturer, BiosVersion | ConvertTo-Json -Depth 2",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh"],
+      "tags": ["system", "hardware", "read-only"]
+    },
+    {
+      "id": "get-installed-programs",
+      "label": "Installed Programs",
+      "category": "Inventory",
+      "description": "Lists installed programs from registry (current user and machine)",
+      "commandText": "Get-ItemProperty HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*, HKLM:\\Software\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\* | Where-Object {$_.DisplayName} | Select-Object DisplayName, DisplayVersion, Publisher, InstallDate | ConvertTo-Json -Depth 2",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["software", "inventory", "read-only"]
+    },
+    {
+      "id": "get-environment-variables",
+      "label": "Environment Variables",
+      "category": "Inventory",
+      "description": "Lists all environment variables (current user scope)",
+      "commandText": "Get-ChildItem Env: | Select-Object Name, Value | ConvertTo-Json -Depth 2",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["environment", "config", "read-only"]
+    },
+    {
+      "id": "get-powershell-version",
+      "label": "PowerShell Version Info",
+      "category": "Inventory",
+      "description": "Shows current PowerShell version and edition",
+      "commandText": "$PSVersionTable | ConvertTo-Json -Depth 2",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["powershell", "version", "read-only"]
+    }
+  ]
+}

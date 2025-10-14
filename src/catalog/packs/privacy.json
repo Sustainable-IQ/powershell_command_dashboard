@@ -1,0 +1,227 @@
+{
+  "id": "privacy-security",
+  "name": "Privacy & Security",
+  "description": "Commands for privacy configuration, security audits, and telemetry management",
+  "version": "1.0.0",
+  "author": "Luc",
+  "commands": [
+    {
+      "id": "get-defender-status",
+      "label": "Windows Defender Status",
+      "category": "Privacy",
+      "description": "Shows Windows Defender antivirus status and configuration",
+      "commandText": "Get-MpComputerStatus | Select-Object AntivirusEnabled, RealTimeProtectionEnabled, BehaviorMonitorEnabled, IoavProtectionEnabled, NISEnabled, AntivirusSignatureLastUpdated | ConvertTo-Json -Depth 2",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["defender", "security", "read-only"]
+    },
+    {
+      "id": "update-defender-signatures-admin",
+      "label": "Update Defender Signatures (Admin)",
+      "category": "Security",
+      "description": "Updates Windows Defender virus and spyware definitions",
+      "commandText": "Update-MpSignature; Write-Output 'Defender signatures updated'",
+      "requiresAdmin": true,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "deps": ["Defender"],
+      "tags": ["defender", "update", "write"]
+    },
+    {
+      "id": "start-defender-quick-scan-admin",
+      "label": "Quick Scan (Admin)",
+      "category": "Security",
+      "description": "Starts a Windows Defender quick scan",
+      "commandText": "Start-MpScan -ScanType QuickScan; Write-Output 'Quick scan started'",
+      "requiresAdmin": true,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "deps": ["Defender"],
+      "tags": ["defender", "scan", "write"]
+    },
+    {
+      "id": "get-smb1-status",
+      "label": "SMB1 Protocol Status",
+      "category": "Security",
+      "description": "Checks if SMB1 (vulnerable legacy protocol) is enabled",
+      "commandText": "Get-WindowsOptionalFeature -Online -FeatureName SMB1Protocol | Select-Object FeatureName, State | ConvertTo-Json -Depth 2",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["smb", "security", "read-only"]
+    },
+    {
+      "id": "disable-smb1-admin",
+      "label": "Disable SMB1 Protocol (Admin)",
+      "category": "Security",
+      "description": "Disables the SMB1 protocol (security best practice)",
+      "commandText": "Disable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol -NoRestart; Get-WindowsOptionalFeature -Online -FeatureName SMB1Protocol | Select-Object FeatureName, State | ConvertTo-Json",
+      "requiresAdmin": true,
+      "riskLevel": "moderate",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["smb", "security", "disable", "write"],
+      "preview": "Requires restart to take full effect",
+      "verifyAfterRun": {
+        "description": "Verify SMB1 is disabled or pending disable",
+        "checkCommand": "(Get-WindowsOptionalFeature -Online -FeatureName SMB1Protocol).State",
+        "expectedResult": "Disabled or DisablePending",
+        "failureHint": "Restart may be required to complete SMB1 removal"
+      }
+    },
+    {
+      "id": "deny-rdp-connections-admin",
+      "label": "Deny RDP Connections (Admin)",
+      "category": "Security",
+      "description": "Disables Remote Desktop connections via registry",
+      "commandText": "Set-ItemProperty -Path 'HKLM:\\System\\CurrentControlSet\\Control\\Terminal Server' -Name 'fDenyTSConnections' -Value 1; Get-ItemProperty -Path 'HKLM:\\System\\CurrentControlSet\\Control\\Terminal Server' | Select-Object fDenyTSConnections | ConvertTo-Json",
+      "requiresAdmin": true,
+      "riskLevel": "moderate",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["rdp", "security", "disable", "write"],
+      "verifyAfterRun": {
+        "description": "Verify RDP is denied",
+        "checkCommand": "(Get-ItemProperty -Path 'HKLM:\\System\\CurrentControlSet\\Control\\Terminal Server').fDenyTSConnections",
+        "expectedResult": "1",
+        "failureHint": "Registry key may require admin privileges or firewall rules may still allow RDP"
+      }
+    },
+    {
+      "id": "allow-rdp-connections-admin",
+      "label": "Allow RDP Connections (Admin)",
+      "category": "Security",
+      "description": "Enables Remote Desktop connections via registry",
+      "commandText": "Set-ItemProperty -Path 'HKLM:\\System\\CurrentControlSet\\Control\\Terminal Server' -Name 'fDenyTSConnections' -Value 0; Get-ItemProperty -Path 'HKLM:\\System\\CurrentControlSet\\Control\\Terminal Server' | Select-Object fDenyTSConnections | ConvertTo-Json",
+      "requiresAdmin": true,
+      "riskLevel": "moderate",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["rdp", "security", "enable", "write"],
+      "verifyAfterRun": {
+        "description": "Verify RDP is allowed",
+        "checkCommand": "(Get-ItemProperty -Path 'HKLM:\\System\\CurrentControlSet\\Control\\Terminal Server').fDenyTSConnections",
+        "expectedResult": "0",
+        "failureHint": "Firewall rules may still block RDP; check Windows Firewall settings"
+      }
+    },
+    {
+      "id": "add-firewall-block-rule-admin",
+      "label": "Add Outbound Block Rule (Admin)",
+      "category": "Security",
+      "description": "Creates a new firewall rule to block outbound traffic to a specified address",
+      "commandText": "New-NetFirewallRule -DisplayName '{{ruleName}}' -Direction Outbound -Action Block -RemoteAddress '{{remoteAddress}}' -Enabled True; Get-NetFirewallRule -DisplayName '{{ruleName}}' | Select-Object DisplayName, Enabled, Direction, Action | ConvertTo-Json",
+      "requiresAdmin": true,
+      "riskLevel": "moderate",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "params": [
+        {
+          "name": "ruleName",
+          "type": "string",
+          "optional": false,
+          "description": "Display name for the firewall rule"
+        },
+        {
+          "name": "remoteAddress",
+          "type": "string",
+          "optional": false,
+          "description": "IP address or subnet to block (e.g., '192.168.1.100' or '10.0.0.0/8')"
+        }
+      ],
+      "tags": ["firewall", "block", "security", "write"],
+      "verifyAfterRun": {
+        "description": "Verify firewall rule exists and is enabled",
+        "checkCommand": "(Get-NetFirewallRule -DisplayName '{{ruleName}}').Enabled",
+        "expectedResult": "True",
+        "failureHint": "Rule may already exist or name may contain invalid characters"
+      }
+    },
+    {
+      "id": "configure-dns-servers-admin",
+      "label": "Set DNS Servers (Admin)",
+      "category": "Privacy",
+      "description": "Configures DNS servers for a specified network interface",
+      "commandText": "Set-DnsClientServerAddress -InterfaceAlias '{{interfaceAlias}}' -ServerAddresses '{{dnsServers}}'; Get-DnsClientServerAddress -InterfaceAlias '{{interfaceAlias}}' | Select-Object InterfaceAlias, ServerAddresses | ConvertTo-Json",
+      "requiresAdmin": true,
+      "riskLevel": "moderate",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "params": [
+        {
+          "name": "interfaceAlias",
+          "type": "string",
+          "optional": false,
+          "description": "Network interface name (e.g., 'Ethernet', 'Wi-Fi')"
+        },
+        {
+          "name": "dnsServers",
+          "type": "string",
+          "optional": false,
+          "description": "Comma-separated DNS servers (e.g., '1.1.1.1,1.0.0.1' for Cloudflare)"
+        }
+      ],
+      "tags": ["dns", "privacy", "network", "write"],
+      "verifyAfterRun": {
+        "description": "Verify DNS servers are set",
+        "checkCommand": "(Get-DnsClientServerAddress -InterfaceAlias '{{interfaceAlias}}').ServerAddresses",
+        "expectedResult": "Contains specified DNS IPs",
+        "failureHint": "Interface may not exist or may be disabled; use Get-NetAdapter to list interfaces"
+      }
+    },
+    {
+      "id": "get-telemetry-settings",
+      "label": "Windows Telemetry Settings",
+      "category": "Privacy",
+      "description": "Shows current Windows telemetry/diagnostic data level",
+      "commandText": "Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\DataCollection' | Select-Object AllowTelemetry | ConvertTo-Json",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["telemetry", "privacy", "read-only"]
+    },
+    {
+      "id": "get-privacy-settings",
+      "label": "Privacy Settings Overview",
+      "category": "Privacy",
+      "description": "Retrieves key privacy-related registry settings",
+      "commandText": "$settings = @{}; $settings.Telemetry = (Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\DataCollection' -ErrorAction SilentlyContinue).AllowTelemetry; $settings.LocationService = (Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\location' -ErrorAction SilentlyContinue).Value; $settings | ConvertTo-Json",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["privacy", "settings", "read-only"]
+    },
+    {
+      "id": "get-user-account-control-status",
+      "label": "UAC Status",
+      "category": "Security",
+      "description": "Shows User Account Control (UAC) configuration",
+      "commandText": "Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System' | Select-Object EnableLUA, ConsentPromptBehaviorAdmin, PromptOnSecureDesktop | ConvertTo-Json",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["uac", "security", "read-only"]
+    },
+    {
+      "id": "get-bitlocker-status",
+      "label": "BitLocker Status",
+      "category": "Security",
+      "description": "Shows BitLocker encryption status for all volumes",
+      "commandText": "Get-BitLockerVolume | Select-Object MountPoint, VolumeStatus, EncryptionPercentage, ProtectionStatus | ConvertTo-Json -Depth 2",
+      "requiresAdmin": true,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "deps": ["BitLocker"],
+      "tags": ["bitlocker", "encryption", "security", "read-only"]
+    }
+  ]
+}

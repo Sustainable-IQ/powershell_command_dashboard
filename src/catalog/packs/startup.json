@@ -1,0 +1,171 @@
+{
+  "id": "startup-persistence",
+  "name": "Startup & Persistence",
+  "description": "Commands to audit startup programs, scheduled tasks, and persistence mechanisms",
+  "version": "1.0.0",
+  "author": "Luc",
+  "commands": [
+    {
+      "id": "get-startup-commands",
+      "label": "Startup Commands",
+      "category": "Startup",
+      "description": "Lists programs that run at system startup",
+      "commandText": "Get-CimInstance Win32_StartupCommand | Select-Object Name, Command, Location, User | ConvertTo-Json -Depth 2",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["startup", "persistence", "diagnostics", "read-only"]
+    },
+    {
+      "id": "get-scheduled-tasks-enabled",
+      "label": "Scheduled Tasks (enabled)",
+      "category": "Startup",
+      "description": "Lists all enabled scheduled tasks",
+      "commandText": "Get-ScheduledTask | Where-Object {$_.State -ne 'Disabled'} | Select-Object TaskName, TaskPath, State, @{Name='Triggers';Expression={$_.Triggers.Count}}, @{Name='Actions';Expression={$_.Actions.Count}} | ConvertTo-Json -Depth 2",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["scheduled-task", "persistence", "diagnostics", "read-only"]
+    },
+    {
+      "id": "get-run-keys-user",
+      "label": "Run Keys (Current User)",
+      "category": "Startup",
+      "description": "Lists registry Run keys for the current user",
+      "commandText": "$runPath = 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'; if (Test-Path $runPath) { Get-ItemProperty $runPath | Select-Object * -ExcludeProperty PSPath, PSParentPath, PSChildName, PSDrive, PSProvider | ConvertTo-Json -Depth 2 } else { Write-Output '{}' }",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["registry", "run-keys", "persistence", "read-only"]
+    },
+    {
+      "id": "get-run-keys-machine",
+      "label": "Run Keys (Machine)",
+      "category": "Startup",
+      "description": "Lists registry Run keys for all users (machine-wide)",
+      "commandText": "$runPath = 'HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'; if (Test-Path $runPath) { Get-ItemProperty $runPath | Select-Object * -ExcludeProperty PSPath, PSParentPath, PSChildName, PSDrive, PSProvider | ConvertTo-Json -Depth 2 } else { Write-Output '{}' }",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["registry", "run-keys", "persistence", "read-only"]
+    },
+    {
+      "id": "get-runonce-keys-user",
+      "label": "RunOnce Keys (Current User)",
+      "category": "Startup",
+      "description": "Lists registry RunOnce keys for the current user",
+      "commandText": "$runPath = 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce'; if (Test-Path $runPath) { Get-ItemProperty $runPath | Select-Object * -ExcludeProperty PSPath, PSParentPath, PSChildName, PSDrive, PSProvider | ConvertTo-Json -Depth 2 } else { Write-Output '{}' }",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["registry", "run-keys", "persistence", "read-only"]
+    },
+    {
+      "id": "get-services-auto-start",
+      "label": "Auto-Start Services",
+      "category": "Startup",
+      "description": "Lists services configured to start automatically",
+      "commandText": "Get-Service | Where-Object {$_.StartType -eq 'Automatic'} | Select-Object Name, DisplayName, Status, StartType | ConvertTo-Json -Depth 2",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["service", "startup", "read-only"]
+    },
+    {
+      "id": "get-wmi-event-subscriptions",
+      "label": "WMI Event Subscriptions",
+      "category": "Startup",
+      "description": "Lists WMI event subscriptions (common persistence mechanism)",
+      "commandText": "$filters = Get-WmiObject -Namespace root\\subscription -Class __EventFilter | Select-Object Name, Query; $consumers = Get-WmiObject -Namespace root\\subscription -Class __EventConsumer | Select-Object Name; $bindings = Get-WmiObject -Namespace root\\subscription -Class __FilterToConsumerBinding | Select-Object Filter, Consumer; @{Filters=$filters; Consumers=$consumers; Bindings=$bindings} | ConvertTo-Json -Depth 3",
+      "requiresAdmin": false,
+      "riskLevel": "info",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "tags": ["wmi", "persistence", "advanced", "read-only"]
+    },
+    {
+      "id": "disable-scheduled-task",
+      "label": "Disable Scheduled Task (Admin)",
+      "category": "Startup",
+      "description": "Disables a specified scheduled task",
+      "commandText": "Disable-ScheduledTask -TaskName '{{taskName}}'; Get-ScheduledTask -TaskName '{{taskName}}' | Select-Object TaskName, State | ConvertTo-Json",
+      "requiresAdmin": true,
+      "riskLevel": "moderate",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "params": [
+        {
+          "name": "taskName",
+          "type": "string",
+          "optional": false,
+          "description": "Name of the scheduled task to disable"
+        }
+      ],
+      "tags": ["scheduled-task", "disable", "write"],
+      "verifyAfterRun": {
+        "description": "Verify task is disabled",
+        "checkCommand": "(Get-ScheduledTask -TaskName '{{taskName}}').State",
+        "expectedResult": "Disabled",
+        "failureHint": "Task may not exist or requires admin privileges"
+      }
+    },
+    {
+      "id": "stop-service-admin",
+      "label": "Stop Service (Admin)",
+      "category": "Startup",
+      "description": "Stops a specified Windows service",
+      "commandText": "Stop-Service -Name '{{serviceName}}' -Force; Get-Service -Name '{{serviceName}}' | Select-Object Name, Status | ConvertTo-Json",
+      "requiresAdmin": true,
+      "riskLevel": "moderate",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "params": [
+        {
+          "name": "serviceName",
+          "type": "string",
+          "optional": false,
+          "description": "Name of the service to stop (e.g., 'Spooler')"
+        }
+      ],
+      "tags": ["service", "stop", "write"],
+      "verifyAfterRun": {
+        "description": "Verify service is stopped",
+        "checkCommand": "(Get-Service -Name '{{serviceName}}').Status",
+        "expectedResult": "Stopped",
+        "failureHint": "Service may be required by the system or have dependencies"
+      }
+    },
+    {
+      "id": "set-service-startup-disabled",
+      "label": "Disable Service Startup (Admin)",
+      "category": "Startup",
+      "description": "Sets a service startup type to Disabled",
+      "commandText": "Set-Service -Name '{{serviceName}}' -StartupType Disabled; Get-Service -Name '{{serviceName}}' | Select-Object Name, StartType, Status | ConvertTo-Json",
+      "requiresAdmin": true,
+      "riskLevel": "destructive",
+      "os": ["win10", "win11"],
+      "shell": ["pwsh", "powershell"],
+      "params": [
+        {
+          "name": "serviceName",
+          "type": "string",
+          "optional": false,
+          "description": "Name of the service to disable at startup"
+        }
+      ],
+      "tags": ["service", "disable", "write"],
+      "verifyAfterRun": {
+        "description": "Verify service startup type is Disabled",
+        "checkCommand": "(Get-Service -Name '{{serviceName}}').StartType",
+        "expectedResult": "Disabled",
+        "failureHint": "Service may require admin privileges or may be protected"
+      }
+    }
+  ]
+}

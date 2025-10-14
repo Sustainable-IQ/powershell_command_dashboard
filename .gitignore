@@ -1,0 +1,63 @@
+# Dependencies
+node_modules/
+.pnpm-debug.log*
+
+# Build outputs
+out/
+dist/
+*.vsix
+
+# IDE files
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+temp/
+tmp/
+
+# Package manager files
+package-lock.json
+yarn.lock
+# Keep pnpm-lock.yaml since project uses pnpm
+# pnpm-lock.yaml
+
+# Extension specific
+*.vsix
+.vscode-test/
+
+# PowerShell artifacts
+*.ps1.bak
+artifacts/
+
+# Keep test files for debugging
+!tests/**
