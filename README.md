@@ -22,7 +22,7 @@ A VS Code extension that provides a visual dashboard for running curated PowerSh
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/powershell-command-dashboard.git
+git clone https://github.com/Sustainable-IQ/powershell_command_dashboard.git
 
 # Install dependencies
 pnpm install
