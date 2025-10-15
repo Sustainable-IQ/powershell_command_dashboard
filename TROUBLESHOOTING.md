@@ -129,8 +129,9 @@ The extension bypasses ExecutionPolicy temporarily. If still blocked:
 **Solution:**
 1. Check VS Code version (requires 1.85+)
 2. Reload VS Code window: `Ctrl+Shift+P` → "Developer: Reload Window"
-3. Check extension logs: View → Output → Select "PowerShell Command Dashboard"
-4. Reinstall extension
+3. Check extension logs: View → Output → Select "Extension Host"
+4. Ensure package.json has correct `main` field pointing to `out/extension-dynamic.js`
+5. Rebuild extension: `pnpm run build`
 
 #### Problem: Webview doesn't load
 **Solution:**
@@ -162,8 +163,8 @@ Get-Content "$env:LOCALAPPDATA\ps-dashboard\logs\*.log" -Tail 50
 
 ### Support Channels
 
-1. **GitHub Issues**: https://github.com/luc-systems/ps-command-dashboard/issues
-2. **Discussions**: https://github.com/luc-systems/ps-command-dashboard/discussions
+1. **GitHub Issues**: https://github.com/Sustainable-IQ/powershell_command_dashboard/issues
+2. **Discussions**: https://github.com/Sustainable-IQ/powershell_command_dashboard/discussions
 3. **Security Issues**: See [SECURITY.md](SECURITY.md)
 
 ### Quick Fixes Checklist

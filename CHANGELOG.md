@@ -5,7 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2024-01-XX
+## [0.2.0] - 2025-10-14
+
+### Added
+- **Dynamic Command Loading**: Commands now loaded from JSON pack files instead of hardcoded
+- **Live Command Execution**: Real PowerShell execution with live output display
+- **Two-Panel Dashboard**: Commands on left, results on right with terminal-style output
+- **Process Control**: Cancel running commands and clear output history
+- **Enhanced Security**: Command whitelisting with validation against pack definitions
+- **40+ Built-in Commands**: Expanded command library across 4 categories
+- **Search Functionality**: Real-time command search across all categories
+- **GitHub Integration**: Published to https://github.com/Sustainable-IQ/powershell_command_dashboard
+
+### Changed
+- Replaced hardcoded commands with dynamic pack loader (`extension-dynamic.js`)
+- Improved UI with professional results panel showing command output
+- Updated command display name from "Open PowerShell Command Dashboard" to "PowerShell: Open Dashboard"
+- Enhanced message handling between extension and webview
+
+### Fixed
+- Extension activation issues in VS Code
+- Command registration failures
+- PowerShell execution with proper error handling
+- Content Security Policy warnings
+
+## [0.1.0] - 2025-10-13
 
 ### Added
 - **Command Catalog**: 50+ curated PowerShell commands across 5 categories
@@ -71,4 +95,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Support
 
 For issues and feature requests, please visit:
-https://github.com/luc-systems/ps-command-dashboard/issues
+https://github.com/Sustainable-IQ/powershell_command_dashboard/issues

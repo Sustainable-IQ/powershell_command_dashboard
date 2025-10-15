@@ -15,8 +15,8 @@ Thank you for your interest in contributing! This guide will help you get starte
 
 1. **Fork and Clone**
    ```bash
-   git clone https://github.com/YOUR-USERNAME/ps-command-dashboard.git
-   cd ps-command-dashboard
+   git clone https://github.com/YOUR-USERNAME/powershell_command_dashboard.git
+   cd powershell_command_dashboard
    ```
 
 2. **Install Dependencies**
@@ -36,24 +36,29 @@ Thank you for your interest in contributing! This guide will help you get starte
 
 5. **Launch Development Instance**
    - Press `F5` to launch a new VS Code window with the extension loaded
-   - Open Command Palette → "Open PowerShell Command Dashboard"
+   - Open Command Palette → "PowerShell: Open Dashboard"
 
 ## Project Structure
 
 ```
-├── src/                 # Extension source code
-│   ├── catalog/        # Command catalog and validation
-│   ├── runner/         # PowerShell execution engine
-│   ├── settings/       # Configuration management
-│   └── extension.ts    # Main extension entry
-├── webview/            # React-based UI
-│   ├── components/     # UI components
-│   └── app.tsx        # Main webview app
-├── packs/              # Built-in command packs
-├── tests/              # Test suites
-│   ├── *.test.ts      # Vitest unit tests
-│   └── powershell/    # Pester tests
-└── scripts/            # Build and automation scripts
+├── src/                     # Extension source code
+│   ├── catalog/            # Command catalog and validation
+│   │   └── packs/         # Command pack JSON files (40+ commands)
+│   ├── runner/            # PowerShell execution engine
+│   ├── settings/          # Configuration management
+│   └── extension.ts       # Original extension entry
+├── out/                    # Compiled JavaScript
+│   ├── extension-dynamic.js # Current active extension
+│   └── catalog/packs/     # Copied command packs
+├── dist/                   # Built webview assets
+│   └── webview/index.html # Dashboard UI
+├── webview/               # React-based UI source
+│   ├── components/        # UI components
+│   └── app.tsx           # Main webview app
+├── tests/                 # Test suites
+│   ├── *.test.ts         # Vitest unit tests
+│   └── powershell/       # Pester tests
+└── scripts/               # Build and automation scripts
 ```
 
 ## Testing
@@ -76,10 +81,11 @@ pnpm run test:integration # VS Code integration tests
 
 ## Adding Command Packs
 
-1. Create a new JSON file in `packs/`
+1. Create a new JSON file in `src/catalog/packs/`
 2. Follow the schema in `src/catalog/schema.ts`
 3. Run validation: `pnpm run validate-packs`
 4. Add tests in `tests/catalog.test.ts`
+5. Run `pnpm run build` to copy packs to output
 
 Example pack structure:
 ```json
@@ -91,11 +97,12 @@ Example pack structure:
     {
       "id": "my-cmd",
       "label": "My Command",
-      "category": "system",
-      "command": "Get-Process",
+      "category": "System",
+      "description": "Gets running processes",
+      "commandText": "Get-Process | Select-Object -First 10",
       "requiresAdmin": false,
-      "riskLevel": "low",
-      "tags": ["process"]
+      "riskLevel": "info",
+      "tags": ["process", "diagnostics"]
     }
   ]
 }
@@ -172,8 +179,8 @@ pnpm run lint
 
 ## Questions?
 
-- Open a [Discussion](https://github.com/luc-systems/ps-command-dashboard/discussions)
-- Check existing [Issues](https://github.com/luc-systems/ps-command-dashboard/issues)
+- Open a [Discussion](https://github.com/Sustainable-IQ/powershell_command_dashboard/discussions)
+- Check existing [Issues](https://github.com/Sustainable-IQ/powershell_command_dashboard/issues)
 - Review [Documentation](./README.md)
 
 ## License

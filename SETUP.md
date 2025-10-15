@@ -42,7 +42,7 @@ Ensure you have the following installed:
    - Open the project in VS Code
    - Press `F5` to launch Extension Development Host
    - In the new window, open Command Palette (`Ctrl+Shift+P`)
-   - Run: **"Open PowerShell Command Dashboard"**
+   - Run: **"PowerShell: Open Dashboard"**
 
 ### Development Workflow
 
@@ -82,23 +82,30 @@ pnpm run format
 ```
 powershell_command_dashboard/
 ├── src/                    # Extension code (TypeScript)
-│   ├── extension.ts        # Entry point
+│   ├── extension.ts        # Original entry point
 │   ├── catalog/            # Command catalog schema & loader
-│   │   ├── schema.ts
-│   │   ├── loadCatalog.ts
-│   │   └── packs/          # Built-in command packs (JSON)
+│   │   ├── schema.ts       # TypeScript schemas
+│   │   ├── loadCatalog.ts  # Pack loader
+│   │   └── packs/          # Command pack JSON files (40+ commands)
+│   ├── runner/             # PowerShell execution
 │   └── util/               # Utilities (paths, shell detection)
-├── webview/                # React UI
+├── out/                    # Compiled JavaScript (gitignored)
+│   ├── extension-dynamic.js # Current active extension (dynamic loader)
+│   ├── extension-enhanced.js # Enhanced version with security
+│   └── catalog/packs/      # Copied command packs
+├── dist/                   # Built webview assets (gitignored)
+│   └── webview/
+│       └── index.html      # Dashboard UI with results panel
+├── webview/                # React UI source
 │   ├── app.tsx             # Root component
 │   ├── components/         # UI components
 │   └── state/              # Zustand store
 ├── powershell/             # PowerShell helper scripts
 │   ├── run-batch.ps1       # Batch runner
 │   └── lib.ps1             # Shared functions
-├── tests/                  # Test files
-│   ├── catalog.test.ts     # TypeScript unit tests
-│   └── powershell/         # Pester tests
-└── out/                    # Compiled output (gitignored)
+└── tests/                  # Test files
+    ├── catalog.test.ts     # TypeScript unit tests
+    └── powershell/         # Pester tests
 ```
 
 ### Debugging
@@ -176,9 +183,10 @@ $result | ConvertTo-Json
 
 ### Getting Help
 
-- **Issues**: Report bugs at [GitHub Issues](https://github.com/luc-systems/ps-command-dashboard/issues) (placeholder)
+- **Issues**: Report bugs at [GitHub Issues](https://github.com/Sustainable-IQ/powershell_command_dashboard/issues)
+- **Repository**: https://github.com/Sustainable-IQ/powershell_command_dashboard
 - **Docs**: See [prd.md](prd.md), [tech_spec.md](tech_spec.md), [epics.md](epics.md)
 
 ---
 
-**Status**: MVP scaffolding complete (2025-10-13)
+**Status**: Fully functional extension with dynamic command loading (2025-10-14)

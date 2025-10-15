@@ -4,13 +4,16 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.x.x   | :white_check_mark: |
+| 0.2.x   | :white_check_mark: |
+| 0.1.x   | :x:                |
 
 ## Reporting a Vulnerability
 
 **Do not report security vulnerabilities via public GitHub issues.**
 
-Instead, please report them via email to: **security@luc-systems.dev** (placeholder - update before release)
+Instead, please report them via:
+- Create a private security advisory on GitHub: https://github.com/Sustainable-IQ/powershell_command_dashboard/security/advisories
+- Or email the maintainer directly (see repository for contact)
 
 ### What to Include
 
@@ -90,5 +93,5 @@ Critical vulnerabilities are patched within 48 hours.
 
 ---
 
-**Last Updated**: 2025-10-13
-**Contact**: security@luc-systems.dev (placeholder)
+**Last Updated**: 2025-10-14
+**Repository**: https://github.com/Sustainable-IQ/powershell_command_dashboard
