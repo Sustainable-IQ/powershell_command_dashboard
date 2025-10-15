@@ -13,6 +13,8 @@ A VS Code extension that provides a visual dashboard for running curated PowerSh
 - ❌ **Process Control** - Cancel running commands and clear output history
 - 🎨 **VS Code Integration** - Follows VS Code theme and UI guidelines
 
+![Alt text](images/dashboard1.png)
+
 ## Quick Start
 
 1. Clone and install dependencies:
