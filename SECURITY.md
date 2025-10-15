@@ -11,9 +11,7 @@
 
 **Do not report security vulnerabilities via public GitHub issues.**
 
-Instead, please report them via:
-- Create a private security advisory on GitHub: https://github.com/Sustainable-IQ/powershell_command_dashboard/security/advisories
-- Or email the maintainer directly (see repository for contact)
+Instead, please report them via email to: **security@luc-systems.dev** (placeholder - update before release)
 
 ### What to Include
 
