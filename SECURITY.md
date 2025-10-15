@@ -10,7 +10,7 @@
 
 **Do not report security vulnerabilities via public GitHub issues.**
 
-Instead, please report them via email to: **security@luc-systems.dev** (placeholder - update before release)
+Instead, please report them via email to: ---- ADD EMAIL (TO DO)
 
 ### What to Include
 
